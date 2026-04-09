@@ -503,6 +503,127 @@ class WiseApiClient:
             
         return response.json()
 
+    def get_balances(self, profile_id: str, types: str = "STANDARD") -> List[Dict[str, Any]]:
+        """
+        Get all balances for a profile.
+
+        Args:
+            profile_id: The ID of the profile to get balances for
+            types: Comma-separated balance types to filter (default: "STANDARD").
+                   Options: STANDARD, SAVINGS
+
+        Returns:
+            List of balance objects with currency, amount, and balance details
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = f"{self.base_url}/v4/profiles/{profile_id}/balances"
+        params = {"types": types}
+        response = requests.get(url, headers=self.headers, params=params)
+
+        if response.status_code >= 400:
+            self._handle_error(response)
+
+        return response.json()
+
+    def get_exchange_rates(
+        self,
+        source: str,
+        target: str,
+        time: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get live exchange rates.
+
+        Args:
+            source: Source currency code (e.g., 'USD')
+            target: Target currency code (e.g., 'EUR')
+            time: Optional. ISO 8601 timestamp for historical rate (e.g., '2024-01-01T00:00:00Z')
+
+        Returns:
+            List of rate objects containing source, target, rate, and time
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = f"{self.base_url}/v1/rates"
+        params = {"source": source, "target": target}
+        if time:
+            params["time"] = time
+
+        response = requests.get(url, headers=self.headers, params=params)
+
+        if response.status_code >= 400:
+            self._handle_error(response)
+
+        return response.json()
+
+    def list_transfers(
+        self,
+        profile_id: str,
+        status: Optional[str] = None,
+        offset: int = 0,
+        limit: int = 10,
+        created_date_start: Optional[str] = None,
+        created_date_end: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        List transfers for a profile.
+
+        Args:
+            profile_id: The ID of the profile to list transfers for
+            status: Optional. Filter by status (e.g., 'incoming_payment_waiting',
+                    'processing', 'funds_converted', 'outgoing_payment_sent',
+                    'cancelled', 'funds_refunded', 'bounced_back')
+            offset: Pagination offset (default: 0)
+            limit: Number of results per page (default: 10, max: 100)
+            created_date_start: Optional. ISO 8601 date filter start
+            created_date_end: Optional. ISO 8601 date filter end
+
+        Returns:
+            List of transfer objects
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = f"{self.base_url}/v1/transfers"
+        params = {"profile": profile_id, "offset": offset, "limit": limit}
+        if status:
+            params["status"] = status
+        if created_date_start:
+            params["createdDateStart"] = created_date_start
+        if created_date_end:
+            params["createdDateEnd"] = created_date_end
+
+        response = requests.get(url, headers=self.headers, params=params)
+
+        if response.status_code >= 400:
+            self._handle_error(response)
+
+        return response.json()
+
+    def get_transfer(self, transfer_id: str) -> Dict[str, Any]:
+        """
+        Get details of a specific transfer.
+
+        Args:
+            transfer_id: The ID of the transfer to get
+
+        Returns:
+            Transfer object from the Wise API
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = f"{self.base_url}/v1/transfers/{transfer_id}"
+        response = requests.get(url, headers=self.headers)
+
+        if response.status_code >= 400:
+            self._handle_error(response)
+
+        return response.json()
+
     def get_ott_token_status(self, ott: str) -> Dict[str, Any]:
         """
         Get the status of a one-time token.
