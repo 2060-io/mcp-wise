@@ -4,6 +4,7 @@ Wise API transfer resources for the FastMCP server.
 
 from typing import Optional
 
+from fastmcp import Context
 from wise_mcp.app import mcp
 from ..api.wise_client_helper import init_wise_client
 
@@ -15,7 +16,8 @@ def list_transfers(
     limit: int = 10,
     offset: int = 0,
     created_date_start: Optional[str] = None,
-    created_date_end: Optional[str] = None
+    created_date_end: Optional[str] = None,
+    ctx: Context = None
 ) -> str:
     """
     List transfers (transaction history) for a Wise profile.
@@ -37,11 +39,12 @@ def list_transfers(
     Raises:
         Exception: If the API request fails.
     """
-    ctx = init_wise_client(profile_type)
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client(profile_type, api_token=token)
 
     try:
-        transfers = ctx.wise_api_client.list_transfers(
-            profile_id=ctx.profile.profile_id,
+        transfers = wise_ctx.wise_api_client.list_transfers(
+            profile_id=wise_ctx.profile.profile_id,
             status=status,
             offset=offset,
             limit=limit,
@@ -79,7 +82,8 @@ def list_transfers(
 @mcp.tool()
 def get_transfer_status(
     transfer_id: str,
-    profile_type: str = "personal"
+    profile_type: str = "personal",
+    ctx: Context = None
 ) -> str:
     """
     Get the details and status of a specific transfer.
@@ -94,10 +98,11 @@ def get_transfer_status(
     Raises:
         Exception: If the API request fails.
     """
-    ctx = init_wise_client(profile_type)
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client(profile_type, api_token=token)
 
     try:
-        t = ctx.wise_api_client.get_transfer(transfer_id)
+        t = wise_ctx.wise_api_client.get_transfer(transfer_id)
 
         tid = t.get("id", "")
         t_status = t.get("status", "unknown")

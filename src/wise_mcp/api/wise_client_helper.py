@@ -18,8 +18,8 @@ class WiseClientContext:
     profile: WiseProfile
 
 
-def init_wise_client(profile_type: str = "personal") -> WiseClientContext:
-    api_client = WiseApiClient()
+def init_wise_client(profile_type: str = "personal", api_token: str | None = None) -> WiseClientContext:
+    api_client = WiseApiClient(api_token=api_token)
 
     profiles = api_client.list_profiles()
     

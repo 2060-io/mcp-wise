@@ -16,19 +16,20 @@ load_dotenv()
 class WiseApiClient:
     """Client for interacting with the Wise API."""
 
-    def __init__(self):
+    def __init__(self, api_token: Optional[str] = None):
         """
         Initialize the Wise API client.
         
         Args:
             api_token: The API token to use for authentication.
+                       Falls back to WISE_API_TOKEN environment variable.
         """
 
         is_sandbox = os.getenv("WISE_IS_SANDBOX", "true").lower() == "true"
-        self.api_token = os.getenv("WISE_API_TOKEN", "")
+        self.api_token = api_token or os.getenv("WISE_API_TOKEN", "")
 
         if not self.api_token:
-            raise ValueError("WISE_API_TOKEN must be provided or set in the environment")
+            raise ValueError("Wise API token not provided. Please configure your Wise API token.")
         
         if is_sandbox:
             self.base_url = "https://api.wise-sandbox.com"

@@ -4,6 +4,7 @@ Wise API exchange rate resources for the FastMCP server.
 
 from typing import Optional
 
+from fastmcp import Context
 from wise_mcp.app import mcp
 from ..api.wise_client_helper import init_wise_client
 
@@ -12,7 +13,8 @@ from ..api.wise_client_helper import init_wise_client
 def get_exchange_rate(
     source_currency: str,
     target_currency: str,
-    time: Optional[str] = None
+    time: Optional[str] = None,
+    ctx: Context = None
 ) -> str:
     """
     Get the live or historical exchange rate between two currencies.
@@ -30,10 +32,11 @@ def get_exchange_rate(
         Exception: If the API request fails.
     """
     # We only need the API client, not the profile
-    ctx = init_wise_client("personal")
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client("personal", api_token=token)
 
     try:
-        rates = ctx.wise_api_client.get_exchange_rates(
+        rates = wise_ctx.wise_api_client.get_exchange_rates(
             source=source_currency,
             target=target_currency,
             time=time
