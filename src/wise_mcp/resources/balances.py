@@ -4,12 +4,13 @@ Wise API balance resources for the FastMCP server.
 
 from typing import List, Dict, Any
 
+from fastmcp import Context
 from wise_mcp.app import mcp
 from ..api.wise_client_helper import init_wise_client
 
 
 @mcp.tool()
-def get_balances(profile_type: str = "personal") -> str:
+def get_balances(profile_type: str = "personal", ctx: Context = None) -> str:
     """
     Get all multi-currency account balances for a Wise profile.
 
@@ -22,10 +23,11 @@ def get_balances(profile_type: str = "personal") -> str:
     Raises:
         Exception: If the API request fails.
     """
-    ctx = init_wise_client(profile_type)
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client(profile_type, api_token=token)
 
     try:
-        balances = ctx.wise_api_client.get_balances(ctx.profile.profile_id)
+        balances = wise_ctx.wise_api_client.get_balances(wise_ctx.profile.profile_id)
 
         if not balances:
             return "No balances found for this profile."

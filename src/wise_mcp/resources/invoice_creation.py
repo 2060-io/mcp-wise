@@ -5,6 +5,7 @@ Wise API invoice creation resource for the FastMCP server.
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 
+from fastmcp import Context
 from wise_mcp.api.types.payment_request import PayerAddress
 from wise_mcp.app import mcp
 from wise_mcp.api.wise_client_helper import init_wise_client
@@ -29,7 +30,8 @@ def create_invoice(
     payer_locale: Optional[str] = 'en',
     invoice_number: Optional[str] = None,
     message: Optional[str] = None,
-    issue_date: Optional[str] = None
+    issue_date: Optional[str] = None,
+    ctx: Context = None
 ) -> str:
     """
     Create an invoice payment request using the Wise API.
@@ -70,7 +72,8 @@ def create_invoice(
     if profile_type.lower() != "business":
         return "Error: Invoices are only available for business profiles. Personal profiles cannot create invoices."
 
-    ctx = init_wise_client(profile_type)
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client(profile_type, api_token=token)
     
     # Calculate due date
     due_date = (datetime.now() + timedelta(days=due_days)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
@@ -81,8 +84,8 @@ def create_invoice(
 
     try:
         # Step 1: Create empty invoice to get auto-generated fields
-        empty_invoice = ctx.wise_api_client.create_empty_invoice(
-            profile_id=ctx.profile.profile_id,
+        empty_invoice = wise_ctx.wise_api_client.create_empty_invoice(
+            profile_id=wise_ctx.profile.profile_id,
             balance_id=balance_id,
             due_at=due_date,
             issue_date=issue_date
@@ -146,15 +149,15 @@ def create_invoice(
             message=message
         )
         
-        updated_invoice = ctx.wise_api_client.update_payment_request_v2(
-            profile_id=ctx.profile.profile_id,
+        updated_invoice = wise_ctx.wise_api_client.update_payment_request_v2(
+            profile_id=wise_ctx.profile.profile_id,
             payment_request_id=empty_invoice.id,
             payment_request=payment_request
         )
         
         # Step 3: Publish the invoice
-        published_invoice = ctx.wise_api_client.publish_payment_request(
-            profile_id=ctx.profile.profile_id,
+        published_invoice = wise_ctx.wise_api_client.publish_payment_request(
+            profile_id=wise_ctx.profile.profile_id,
             payment_request_id=updated_invoice.id
         )
         
@@ -165,7 +168,7 @@ def create_invoice(
 
 
 @mcp.tool()
-def get_balance_currencies(profile_type: str) -> str:
+def get_balance_currencies(profile_type: str, ctx: Context = None) -> str:
     """
     Get available currencies and balance IDs for creating invoices.
     
@@ -186,11 +189,12 @@ def get_balance_currencies(profile_type: str) -> str:
     if profile_type.lower() == "personal":
         return "Warning: Invoices are only available for business profiles. Personal profiles cannot create invoices. Please use profile_type='business' instead."
     
-    ctx = init_wise_client(profile_type)
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client(profile_type, api_token=token)
     
     try:
         # Get balance currencies
-        currencies = ctx.wise_api_client.get_balance_currencies(ctx.profile.profile_id)
+        currencies = wise_ctx.wise_api_client.get_balance_currencies(wise_ctx.profile.profile_id)
         
         if not currencies.get("balances"):
             return "No balances found for this profile."

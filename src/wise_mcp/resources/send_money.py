@@ -5,6 +5,7 @@ Wise API send money resource for the FastMCP server.
 import uuid
 from typing import Dict, Any, Optional
 
+from fastmcp import Context
 from wise_mcp.app import mcp
 from wise_mcp.api.wise_client_helper import init_wise_client
 from wise_mcp.api.types import WiseFundResponse, WiseFundWithScaResponse
@@ -18,7 +19,8 @@ def send_money(
     source_amount: float,
     recipient_id: str,
     payment_reference: Optional[str] = None,
-    source_of_funds: Optional[str] = None
+    source_of_funds: Optional[str] = None,
+    ctx: Context = None
 ) -> str:
     """
     Send money to a recipient using the Wise API.
@@ -39,15 +41,16 @@ def send_money(
         Exception: If any API request fails during the process
     """
 
-    ctx = init_wise_client(profile_type)
+    token = ctx.get_state("wise_api_token") if ctx else None
+    wise_ctx = init_wise_client(profile_type, api_token=token)
     
     customer_transaction_id = str(uuid.uuid4())
     
     reference = payment_reference or "money"
     
     # 1. Create a quote
-    quote = ctx.wise_api_client.create_quote(
-        profile_id=ctx.profile.profile_id,
+    quote = wise_ctx.wise_api_client.create_quote(
+        profile_id=wise_ctx.profile.profile_id,
         source_currency=source_currency,
         target_currency=target_currency,
         source_amount=source_amount,
@@ -66,12 +69,12 @@ def send_money(
     if source_of_funds:
         transfer_params["source_of_funds"] = source_of_funds
     
-    transfer = ctx.wise_api_client.create_transfer(**transfer_params)
+    transfer = wise_ctx.wise_api_client.create_transfer(**transfer_params)
     transfer_id = transfer["id"]
     
     # 3. Fund the transfer (may trigger SCA)
-    fund_result = ctx.wise_api_client.fund_transfer(
-        profile_id=ctx.profile.profile_id,
+    fund_result = wise_ctx.wise_api_client.fund_transfer(
+        profile_id=wise_ctx.profile.profile_id,
         transfer_id=transfer_id,
         type="BALANCE"
     )
