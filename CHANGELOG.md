@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/2060-io/mcp-wise/compare/v0.1.0...v0.1.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* bind HTTP server to 0.0.0.0 for container networking ([#7](https://github.com/2060-io/mcp-wise/issues/7)) ([e129252](https://github.com/2060-io/mcp-wise/commit/e129252f4d8f52a9e69ba352bcf045074ea30356))
+
+
+### Documentation
+
+* update README and add MIT LICENSE ([#4](https://github.com/2060-io/mcp-wise/issues/4)) ([f9b80ef](https://github.com/2060-io/mcp-wise/commit/f9b80efe63385cd2404e43e4341dc7f9703ea524))
+
 ## 0.1.0 (2026-04-10)
 
 
