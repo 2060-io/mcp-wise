@@ -31,9 +31,9 @@ class WiseApiClient:
             raise ValueError("WISE_API_TOKEN must be provided or set in the environment")
         
         if is_sandbox:
-            self.base_url = "https://api.sandbox.transferwise.tech"
+            self.base_url = "https://api.wise-sandbox.com"
         else:
-            self.base_url = "https://api.transferwise.com"
+            self.base_url = "https://api.wise.com"
 
         self.headers = {
             "Authorization": f"Bearer {self.api_token}",
