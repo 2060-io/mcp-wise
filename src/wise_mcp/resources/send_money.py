@@ -6,7 +6,7 @@ import uuid
 from typing import Dict, Any, Optional
 
 from fastmcp import Context
-from wise_mcp.app import mcp
+from wise_mcp.app import mcp, get_wise_api_token
 from wise_mcp.api.wise_client_helper import init_wise_client
 from wise_mcp.api.types import WiseFundResponse, WiseFundWithScaResponse
 
@@ -41,7 +41,7 @@ def send_money(
         Exception: If any API request fails during the process
     """
 
-    token = ctx.get_state("wise_api_token") if ctx else None
+    token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
     
     customer_transaction_id = str(uuid.uuid4())

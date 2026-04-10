@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from fastmcp import Context
 from wise_mcp.api.types.payment_request import PayerAddress
-from wise_mcp.app import mcp
+from wise_mcp.app import mcp, get_wise_api_token
 from wise_mcp.api.wise_client_helper import init_wise_client
 from wise_mcp.api.types import (
     PaymentRequestInvoiceCommand,
@@ -72,7 +72,7 @@ def create_invoice(
     if profile_type.lower() != "business":
         return "Error: Invoices are only available for business profiles. Personal profiles cannot create invoices."
 
-    token = ctx.get_state("wise_api_token") if ctx else None
+    token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
     
     # Calculate due date
@@ -189,7 +189,7 @@ def get_balance_currencies(profile_type: str, ctx: Context = None) -> str:
     if profile_type.lower() == "personal":
         return "Warning: Invoices are only available for business profiles. Personal profiles cannot create invoices. Please use profile_type='business' instead."
     
-    token = ctx.get_state("wise_api_token") if ctx else None
+    token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
     
     try:
