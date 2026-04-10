@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/2060-io/mcp-wise/compare/v0.1.3...v0.1.4) (2026-04-10)
+
+
+### Bug Fixes
+
+* extract Wise API token directly in tool context instead of middleware ([#14](https://github.com/2060-io/mcp-wise/issues/14)) ([49306ec](https://github.com/2060-io/mcp-wise/commit/49306ec37cd501821764c743ab79ae668c891f9c))
+
 ## [0.1.3](https://github.com/2060-io/mcp-wise/compare/v0.1.2...v0.1.3) (2026-04-10)
 
 
