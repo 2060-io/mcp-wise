@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/2060-io/mcp-wise/compare/v0.1.1...v0.1.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* README.md ([#10](https://github.com/2060-io/mcp-wise/issues/10)) ([8215f28](https://github.com/2060-io/mcp-wise/commit/8215f28c9e02556eb05e85039756b76e4e141312))
+
 ## [0.1.1](https://github.com/2060-io/mcp-wise/compare/v0.1.0...v0.1.1) (2026-04-10)
 
 
