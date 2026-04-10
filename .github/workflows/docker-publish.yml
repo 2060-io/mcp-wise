@@ -35,8 +35,9 @@ jobs:
             VERSION="${{ inputs.release_version }}"
             echo "tags=${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${VERSION}" >> "$GITHUB_OUTPUT"
           else
-            # Push to main — dev tag
-            echo "tags=${{ env.IMAGE_NAME }}:dev" >> "$GITHUB_OUTPUT"
+            # Push to main — dev tag + numbered dev version
+            DEV_VERSION="dev-$(date -u +%Y%m%d-%H%M%S)"
+            echo "tags=${{ env.IMAGE_NAME }}:dev,${{ env.IMAGE_NAME }}:${DEV_VERSION}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Docker image
