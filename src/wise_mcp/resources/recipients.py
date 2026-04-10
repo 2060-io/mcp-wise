@@ -5,7 +5,7 @@ Wise API resources for the FastMCP server.
 from typing import Dict, List, Any, Optional
 
 from fastmcp import Context
-from wise_mcp.app import mcp
+from wise_mcp.app import mcp, get_wise_api_token
 
 from ..api.wise_client_helper import init_wise_client
 from ..api.types import WiseRecipient
@@ -28,7 +28,7 @@ def list_recipients(profile_type: str = "personal", currency: Optional[str] = No
         Exception: If the API request fails or profile ID is not available.
     """
 
-    token = ctx.get_state("wise_api_token") if ctx else None
+    token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
     
     return wise_ctx.wise_api_client.list_recipients(wise_ctx.profile.profile_id, currency)

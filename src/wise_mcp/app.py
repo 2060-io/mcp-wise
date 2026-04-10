@@ -3,41 +3,39 @@ FastMCP server initialization.
 """
 
 import os
-from fastmcp import FastMCP
-from fastmcp.server.middleware import Middleware, MiddlewareContext
+from fastmcp import FastMCP, Context
 from fastmcp.server.dependencies import get_http_headers
 
 
-class WiseAuthMiddleware(Middleware):
-    """Extract Wise API token from Authorization header and store in context state."""
+def get_wise_api_token(ctx: Context | None = None) -> str | None:
+    """Get the Wise API token from context state or HTTP headers.
 
-    async def on_call_tool(self, context: MiddlewareContext, call_next):
-        token = self._extract_token()
+    The middleware-based approach (set_state in on_call_tool) does not work
+    reliably with FastMCP's streamable-http transport because get_http_headers()
+    fails inside middleware context. Calling get_http_headers() directly from
+    the tool execution context works correctly.
+    """
+    # Try context state first (set by middleware, if it worked)
+    if ctx:
+        token = ctx.get_state("wise_api_token")
         if token:
-            context.fastmcp_context.set_state("wise_api_token", token)
-        return await call_next(context)
+            return token
 
-    async def on_list_tools(self, context: MiddlewareContext, call_next):
-        token = self._extract_token()
-        if token:
-            context.fastmcp_context.set_state("wise_api_token", token)
-        return await call_next(context)
+    # Fallback: extract directly from HTTP headers (works in tool context)
+    try:
+        headers = get_http_headers()
+        header = headers.get("authorization", "")
+        if header.startswith("Bearer "):
+            return header.removeprefix("Bearer ").strip()
+    except Exception:
+        pass
 
-    def _extract_token(self) -> str | None:
-        try:
-            headers = get_http_headers()
-            header = headers.get("authorization", "")
-            if header.startswith("Bearer "):
-                return header.removeprefix("Bearer ").strip()
-        except Exception:
-            pass
-        return None
+    return None
 
 
 def create_app():
     """Create and configure the MCP application."""
     mcp = FastMCP("WiseMcp")
-    mcp.add_middleware(WiseAuthMiddleware())
     return mcp
 
 mcp = create_app()
