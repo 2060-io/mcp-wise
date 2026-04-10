@@ -61,7 +61,7 @@ def list_transfers(
             tgt_amt = t.get("targetValue", 0)
             t_status = t.get("status", "unknown")
             created = t.get("created", "")
-            reference = t.get("reference", "")
+            reference = t.get("details", {}).get("reference", "")
 
             line = f"  #{tid}: {src_amt:,.2f} {src_cur} -> {tgt_amt:,.2f} {tgt_cur} | status: {t_status}"
             if reference:
@@ -106,7 +106,7 @@ def get_transfer_status(
         tgt_cur = t.get("targetCurrency", "")
         tgt_amt = t.get("targetValue", 0)
         rate = t.get("rate", "N/A")
-        reference = t.get("reference", "")
+        reference = t.get("details", {}).get("reference", "")
         created = t.get("created", "")
         recipient_id = t.get("targetAccount", "")
 

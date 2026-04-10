@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from wise_mcp.api.types.payment_request import PayerAddress
 from wise_mcp.app import mcp
 from wise_mcp.api.wise_client_helper import init_wise_client
-import traceback
 from wise_mcp.api.types import (
     PaymentRequestInvoiceCommand,
     PayerV2,
@@ -162,9 +161,6 @@ def create_invoice(
         return f"Invoice created and published successfully! ID: {published_invoice.id}, Invoice Number: {published_invoice.invoice.get('invoiceNumber') if published_invoice.invoice else 'N/A'}, Status: {published_invoice.status}, Link: {published_invoice.link or 'N/A'}"
         
     except Exception as error:
-        error_details = traceback.format_exc()
-        print(f"Error occurred during invoice creation: {str(error)}")
-        print(f"Traceback details: {error_details}")
         return f"Failed to create invoice: {str(error)}"
 
 

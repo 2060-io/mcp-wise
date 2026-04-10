@@ -14,6 +14,7 @@ from wise_mcp.api.types import WiseFundResponse, WiseFundWithScaResponse
 def send_money(
     profile_type: str,
     source_currency: str,
+    target_currency: str,
     source_amount: float,
     recipient_id: str,
     payment_reference: Optional[str] = None,
@@ -25,6 +26,7 @@ def send_money(
     Args:
         profile_type: The type of profile to use (personal or business)
         source_currency: Source currency code (e.g., 'USD')
+        target_currency: Target currency code matching the recipient's currency (e.g., 'EUR')
         source_amount: Amount in source currency to send
         recipient_id: The ID of the recipient to send money to
         payment_reference: Optional. Reference message for the transfer (defaults to "money")
@@ -47,7 +49,7 @@ def send_money(
     quote = ctx.wise_api_client.create_quote(
         profile_id=ctx.profile.profile_id,
         source_currency=source_currency,
-        target_currency=source_currency,
+        target_currency=target_currency,
         source_amount=source_amount,
         recipient_id=recipient_id
     )

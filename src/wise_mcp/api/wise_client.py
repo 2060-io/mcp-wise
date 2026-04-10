@@ -31,9 +31,9 @@ class WiseApiClient:
             raise ValueError("WISE_API_TOKEN must be provided or set in the environment")
         
         if is_sandbox:
-            self.base_url = "https://api.sandbox.transferwise.tech"
+            self.base_url = "https://api.wise-sandbox.com"
         else:
-            self.base_url = "https://api.transferwise.com"
+            self.base_url = "https://api.wise.com"
 
         self.headers = {
             "Authorization": f"Bearer {self.api_token}",
@@ -246,8 +246,6 @@ class WiseApiClient:
         response = requests.post(url, headers=self.headers, json=payload)
         result = WiseFundWithScaResponse()
 
-        print(f"Funding transfer {transfer_id} response headers: {response.headers}")
-        
         if response.status_code == 403:
             if response.headers.get("x-2fa-approval-result") == "REJECTED":
                 result.sca_response = WiseScaResponse(
@@ -400,9 +398,6 @@ class WiseApiClient:
                 }
             
             payload["lineItems"].append(line_item)
-        
-                # log the payload for debugging
-        print(f"Creating payment request with payload: {payload}")
 
         response = requests.put(url, headers=self.headers, json=payload)
         
@@ -662,8 +657,8 @@ class WiseApiClient:
         """
         try:
             error_data = response.json()
-            error_msg = error_data.get('errors', [{}])[0].get('message', 'Unknown error')
-        except:
-            error_msg = f"Error: HTTP {response.status_code}"
+            error_msg = error_data.get('errors', [{}])[0].get('message', str(error_data))
+        except Exception:
+            error_msg = f"HTTP {response.status_code}: {response.text}"
             
-        raise Exception(f"Wise API Error: {error_data}")
+        raise Exception(f"Wise API Error: {error_msg}")
