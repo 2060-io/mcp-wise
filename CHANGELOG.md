@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/2060-io/mcp-wise/compare/v0.1.4...v0.1.5) (2026-04-11)
+
+
+### Bug Fixes
+
+* include authorization header in get_http_headers call ([#16](https://github.com/2060-io/mcp-wise/issues/16)) ([d839874](https://github.com/2060-io/mcp-wise/commit/d8398747d2780ba891a27be80536b2dbf7c5e71a))
+
 ## [0.1.4](https://github.com/2060-io/mcp-wise/compare/v0.1.3...v0.1.4) (2026-04-10)
 
 
