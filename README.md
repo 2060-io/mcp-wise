@@ -2,6 +2,19 @@
 
 A MCP (Model Context Protocol) server that serves as a gateway for the Wise API, providing comprehensive access to Wise account management, transfers, exchange rates, invoicing, and recipient functionality.
 
+## Build a Wise AI Assistant with Hologram
+
+This MCP server is fully integrated with [**hologram-generic-ai-agent-vs**](https://github.com/2060-io/hologram-generic-ai-agent-vs), a container for instantly building decentralized, private, and sovereign AI agents. With it, you can deploy a Wise assistant as an Hologram AI chatbot that users interact with over secure DIDComm messaging — no centralized platform required.
+
+The [**hologram-verifiable-services**](https://github.com/2060-io/hologram-verifiable-services) repository contains a ready-to-deploy **Wise Agent** configuration that bundles this MCP server with the Hologram AI agent. It includes:
+
+- A pre-configured **agent pack** with Wise-specific prompts and tool descriptions
+- **Multi-user token support** — each user provides their own Wise API token, securely encrypted and persisted per session
+- **Docker Compose** and **Kubernetes** deployment configurations
+- **Verifiable credential authentication** — users authenticate with verifiable credentials before accessing Wise tools
+
+To get started, see the [wise-agent](https://github.com/2060-io/hologram-verifiable-services/tree/main/wise-agent) directory in the hologram-verifiable-services repo.
+
 ## Features
 
 - **Account balances** — check multi-currency balances with available and reserved amounts
@@ -13,6 +26,7 @@ A MCP (Model Context Protocol) server that serves as a gateway for the Wise API,
 - **Invoices** — create and publish invoice payment requests (business profiles)
 - **Balance currencies** — list available balances for invoice creation
 - Automatic authentication and profile selection (personal or business)
+- **Multi-user support** — in HTTP mode, each request carries its own token via the `Authorization` header, allowing a single server instance to serve multiple users
 - Sandbox and production mode support
 - Available as a Docker image on Docker Hub
 
@@ -97,7 +111,12 @@ docker build -t mcp-wise .
 
 ### Transport Mode
 
-The server supports stdio (default) and HTTP transports. Template config files are provided:
+The server supports two transport modes:
+
+- **stdio** (default) — one process per user, token provided via `WISE_API_TOKEN` environment variable
+- **streamable-http** — single shared server, token provided per-request via the `Authorization: Bearer <token>` header
+
+Template config files are provided:
 
 ```bash
 # stdio mode (default)
@@ -106,6 +125,28 @@ cp .mcp.json.stdio .mcp.json
 # HTTP mode
 cp .mcp.json.http .mcp.json
 ```
+
+### Multi-User HTTP Deployment
+
+In HTTP mode (`MODE=http`), the server does **not** require a `WISE_API_TOKEN` environment variable. Instead, each MCP client sends the user's Wise API token in the HTTP `Authorization` header:
+
+```text
+Authorization: Bearer <wise_api_token>
+```
+
+This allows a single `mcp-wise` instance to serve multiple users, each with their own Wise account. The token is extracted from the request headers on every tool call.
+
+Example with Docker:
+
+```bash
+docker run -d --name mcp-wise \
+  -p 14101:14101 \
+  -e MODE=http \
+  -e WISE_IS_SANDBOX=true \
+  io2060/mcp-wise:latest
+```
+
+Clients then connect to `http://localhost:14101/mcp` using the streamable-http MCP transport with their token in the `Authorization` header.
 
 ## Available MCP Tools
 
@@ -208,9 +249,9 @@ Gets available currencies and balance IDs for creating invoices. **Business prof
 
 Environment variables (set in `.env` file):
 
-- `WISE_API_TOKEN`: Your Wise API token (required)
+- `WISE_API_TOKEN`: Your Wise API token (required in **stdio** mode; ignored in **http** mode where tokens come from request headers)
 - `WISE_IS_SANDBOX`: Set to `true` to use the Wise Sandbox API (default: `false`)
-- `MODE`: MCP Server transport mode, either `http` or `stdio` (default: `stdio`)
+- `MODE`: MCP Server transport mode — `http` (streamable-http) or `stdio` (default: `stdio`)
 
 ## Development
 
