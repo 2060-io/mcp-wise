@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/2060-io/mcp-wise/compare/v0.1.5...v0.1.6) (2026-04-11)
+
+
+### Documentation
+
+* document multi-user token support and Hologram integration ([#18](https://github.com/2060-io/mcp-wise/issues/18)) ([49058df](https://github.com/2060-io/mcp-wise/commit/49058df18b2556dda4fc8ac3cc352e66af64d362))
+
 ## [0.1.5](https://github.com/2060-io/mcp-wise/compare/v0.1.4...v0.1.5) (2026-04-11)
 
 
