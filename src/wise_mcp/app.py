@@ -8,22 +8,13 @@ from fastmcp.server.dependencies import get_http_headers
 
 
 def get_wise_api_token(ctx: Context | None = None) -> str | None:
-    """Get the Wise API token from context state or HTTP headers.
+    """Get the Wise API token from HTTP headers in the current request context.
 
-    The middleware-based approach (set_state in on_call_tool) does not work
-    reliably with FastMCP's streamable-http transport because get_http_headers()
-    fails inside middleware context. Calling get_http_headers() directly from
-    the tool execution context works correctly.
+    FastMCP's get_http_headers() strips the 'authorization' header by default,
+    so we must explicitly include it.
     """
-    # Try context state first (set by middleware, if it worked)
-    if ctx:
-        token = ctx.get_state("wise_api_token")
-        if token:
-            return token
-
-    # Fallback: extract directly from HTTP headers (works in tool context)
     try:
-        headers = get_http_headers()
+        headers = get_http_headers(include={"authorization"})
         header = headers.get("authorization", "")
         if header.startswith("Bearer "):
             return header.removeprefix("Bearer ").strip()
