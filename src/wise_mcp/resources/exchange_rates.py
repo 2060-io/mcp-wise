@@ -5,7 +5,7 @@ Wise API exchange rate resources for the FastMCP server.
 from typing import Optional
 
 from fastmcp import Context
-from wise_mcp.app import mcp, get_wise_api_token
+from wise_mcp.app import mcp, get_wise_api_token, check_profile_allowed
 from ..api.wise_client_helper import init_wise_client
 
 

@@ -5,7 +5,7 @@ Wise API transfer resources for the FastMCP server.
 from typing import Optional
 
 from fastmcp import Context
-from wise_mcp.app import mcp, get_wise_api_token
+from wise_mcp.app import mcp, get_wise_api_token, check_profile_allowed
 from ..api.wise_client_helper import init_wise_client
 
 
@@ -39,6 +39,10 @@ def list_transfers(
     Raises:
         Exception: If the API request fails.
     """
+    denied = check_profile_allowed(profile_type)
+    if denied:
+        return denied
+
     token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
 
@@ -98,6 +102,10 @@ def get_transfer_status(
     Raises:
         Exception: If the API request fails.
     """
+    denied = check_profile_allowed(profile_type)
+    if denied:
+        return denied
+
     token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
 

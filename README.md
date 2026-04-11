@@ -150,6 +150,10 @@ Clients then connect to `http://localhost:14101/mcp` using the streamable-http M
 
 ## Available MCP Tools
 
+### `list_profiles`
+
+List all Wise profiles associated with the current user's API token. Profiles that are not allowed by the server configuration are marked as restricted. This tool does not require a profile parameter.
+
 ### `get_balances`
 
 Get all multi-currency account balances for a Wise profile.
@@ -252,6 +256,7 @@ Environment variables (set in `.env` file):
 - `WISE_API_TOKEN`: Your Wise API token (required in **stdio** mode; ignored in **http** mode where tokens come from request headers)
 - `WISE_IS_SANDBOX`: Set to `true` to use the Wise Sandbox API (default: `false`)
 - `MODE`: MCP Server transport mode — `http` (streamable-http) or `stdio` (default: `stdio`)
+- `WISE_ALLOWED_PROFILES`: Comma-separated list of allowed profile types (default: `personal`). Business profiles must be explicitly enabled. Example: `personal,business`
 
 ## Development
 
