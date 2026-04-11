@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/2060-io/mcp-wise/compare/v0.1.6...v0.1.7) (2026-04-11)
+
+
+### Bug Fixes
+
+* return formatted string from list_recipients instead of dataclass objects ([#20](https://github.com/2060-io/mcp-wise/issues/20)) ([01b4b72](https://github.com/2060-io/mcp-wise/commit/01b4b7252775787ed978ae4ab8669c248dcc9d01))
+
 ## [0.1.6](https://github.com/2060-io/mcp-wise/compare/v0.1.5...v0.1.6) (2026-04-11)
 
 
