@@ -36,6 +36,6 @@ def init_wise_client(profile_type: str = "personal", api_token: str | None = Non
     if not matching_profile:
         raise Exception(f"No profile found with type '{profile_type}'. Available types: {', '.join(set(p.get('type', 'unknown') for p in profiles))}")
     
-    wise_profile = WiseProfile(profile_id=str(matching_profile["id"]))
+    wise_profile = WiseProfile(profile_id=int(matching_profile["id"]))
     
     return WiseClientContext(api_client, wise_profile)
