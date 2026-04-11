@@ -2,14 +2,13 @@
 Wise API resources for the FastMCP server.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Optional
 
 from fastmcp import Context
-from wise_mcp.app import mcp, get_wise_api_token
+from wise_mcp.app import mcp, get_wise_api_token, check_profile_allowed
 
 from ..api.wise_client_helper import init_wise_client
-from ..api.types import WiseRecipient
-from ..utils.string_utils import find_best_match_by_name
+
 
 @mcp.tool()
 def list_recipients(profile_type: str = "personal", currency: Optional[str] = None, ctx: Context = None) -> str:
@@ -27,6 +26,10 @@ def list_recipients(profile_type: str = "personal", currency: Optional[str] = No
     Raises:
         Exception: If the API request fails or profile ID is not available.
     """
+
+    denied = check_profile_allowed(profile_type)
+    if denied:
+        return denied
 
     token = get_wise_api_token(ctx)
     wise_ctx = init_wise_client(profile_type, api_token=token)
