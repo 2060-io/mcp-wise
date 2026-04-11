@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/2060-io/mcp-wise/compare/v0.2.0...v0.3.0) (2026-04-11)
+
+
+### Features
+
+* list profiles access control ([#24](https://github.com/2060-io/mcp-wise/issues/24)) ([0683273](https://github.com/2060-io/mcp-wise/commit/068327389a9fe603b33336bc7b2bcb33363bed09))
+
 ## [0.2.0](https://github.com/2060-io/mcp-wise/compare/v0.1.7...v0.2.0) (2026-04-11)
 
 
