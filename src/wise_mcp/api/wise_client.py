@@ -59,7 +59,7 @@ class WiseApiClient:
             
         return response.json()
     
-    def get_profile(self, profile_id: str) -> Dict[str, Any]:
+    def get_profile(self, profile_id: int) -> Dict[str, Any]:
         """
         Get a specific profile by ID.
         
@@ -81,7 +81,7 @@ class WiseApiClient:
         return response.json()
     
     def list_recipients(self,
-                        profile_id: str,
+                        profile_id: int,
                         currency: Optional[str] = None) -> List[WiseRecipient]:
         """
         List all recipients for a profile.
@@ -97,7 +97,7 @@ class WiseApiClient:
             Exception: If the API request fails.
         """
         url = f"{self.base_url}/v2/accounts"
-        params = {"profile": profile_id}
+        params = {"profileId": profile_id}
         
         # Add currency filter if provided
         if currency:
@@ -115,7 +115,7 @@ class WiseApiClient:
         for recipient in response_data.get("content", []):
             recipients.append(WiseRecipient(
                 id=str(recipient.get("id", "")),
-                profile_id=str(recipient.get("profile", "")),
+                profile_id=str(recipient.get("profileId", "")),
                 full_name=recipient.get("name", {}).get("fullName", "Unknown"),
                 currency=recipient.get("currency", ""),
                 country=recipient.get("country", ""),
@@ -126,7 +126,7 @@ class WiseApiClient:
     
     def create_quote(
         self, 
-        profile_id: str, 
+        profile_id: int, 
         source_currency: str, 
         target_currency: str, 
         source_amount: float,
@@ -214,7 +214,7 @@ class WiseApiClient:
 
     def fund_transfer(
         self,
-        profile_id: str,
+        profile_id: int,
         transfer_id: str,
         type: str
     ) -> WiseFundWithScaResponse:
@@ -268,7 +268,7 @@ class WiseApiClient:
 
     def create_empty_invoice(
         self,
-        profile_id: str,
+        profile_id: int,
         balance_id: int,
         due_at: str,
         issue_date: str
@@ -329,7 +329,7 @@ class WiseApiClient:
 
     def update_payment_request_v2(
         self,
-        profile_id: str,
+        profile_id: int,
         payment_request_id: str,
         payment_request: PaymentRequestInvoiceCommand
     ) -> PaymentRequestV2:
@@ -430,7 +430,7 @@ class WiseApiClient:
 
     def publish_payment_request(
         self,
-        profile_id: str,
+        profile_id: int,
         payment_request_id: str
     ) -> PaymentRequestV2:
         """
@@ -478,7 +478,7 @@ class WiseApiClient:
             invoice=response_data.get("invoice")
         )
 
-    def get_balance_currencies(self, profile_id: str) -> List[Dict[str, Any]]:
+    def get_balance_currencies(self, profile_id: int) -> List[Dict[str, Any]]:
         """
         Get available currencies and balances for a profile.
         
@@ -499,7 +499,7 @@ class WiseApiClient:
             
         return response.json()
 
-    def get_balances(self, profile_id: str, types: str = "STANDARD") -> List[Dict[str, Any]]:
+    def get_balances(self, profile_id: int, types: str = "STANDARD") -> List[Dict[str, Any]]:
         """
         Get all balances for a profile.
 
@@ -557,7 +557,7 @@ class WiseApiClient:
 
     def list_transfers(
         self,
-        profile_id: str,
+        profile_id: int,
         status: Optional[str] = None,
         offset: int = 0,
         limit: int = 10,
@@ -584,7 +584,7 @@ class WiseApiClient:
             Exception: If the API request fails
         """
         url = f"{self.base_url}/v1/transfers"
-        params = {"profile": profile_id, "offset": offset, "limit": limit}
+        params = {"profileId": profile_id, "offset": offset, "limit": limit}
         if status:
             params["status"] = status
         if created_date_start:

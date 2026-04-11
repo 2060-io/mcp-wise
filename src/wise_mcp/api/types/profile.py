@@ -7,4 +7,4 @@ from dataclasses import dataclass
 
 @dataclass
 class WiseProfile:
-    profile_id: str
+    profile_id: int
