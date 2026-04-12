@@ -2,4 +2,4 @@
 Wise MCP Server - MCP gateway for the Wise API.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/2060-io/mcp-wise/compare/v0.3.0...v0.4.0) (2026-04-12)
+
+
+### Features
+
+* dual access control with profile_id and profile types ([#26](https://github.com/2060-io/mcp-wise/issues/26)) ([75ffd7f](https://github.com/2060-io/mcp-wise/commit/75ffd7fc54a32b8721af30af8eda396c927a373c))
+
 ## [0.3.0](https://github.com/2060-io/mcp-wise/compare/v0.2.0...v0.3.0) (2026-04-11)
 
 
