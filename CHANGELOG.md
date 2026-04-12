@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/2060-io/mcp-wise/compare/v0.4.0...v0.4.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* replace real Wise profile IDs with dummy values in README ([#28](https://github.com/2060-io/mcp-wise/issues/28)) ([571169c](https://github.com/2060-io/mcp-wise/commit/571169c53d593c2d6854c1d0169aabdbff3c2e1c))
+
 ## [0.4.0](https://github.com/2060-io/mcp-wise/compare/v0.3.0...v0.4.0) (2026-04-12)
 
 
