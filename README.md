@@ -137,7 +137,7 @@ A single Wise account is configured for this MCP server instance. The server is 
 | Variable | Value |
 |---|---|
 | `WISE_API_TOKEN` | Global Wise API token for the shared account |
-| `WISE_ALLOWED_PROFILES` | Comma-separated list of allowed profile IDs (e.g., `13614771,69973314`) |
+| `WISE_ALLOWED_PROFILES` | Comma-separated list of allowed profile IDs (e.g., `12345678,87654321`) |
 
 Use `list_profiles` to discover profile IDs, then set `WISE_ALLOWED_PROFILES` to control which profiles are accessible.
 
@@ -146,7 +146,7 @@ docker run -d --name mcp-wise \
   -p 14101:14101 \
   -e MODE=http \
   -e WISE_API_TOKEN=your_wise_api_token \
-  -e WISE_ALLOWED_PROFILES=13614771,69973314 \
+  -e WISE_ALLOWED_PROFILES=12345678,87654321 \
   io2060/mcp-wise:latest
 ```
 
@@ -284,7 +284,7 @@ Environment variables (set in `.env` file):
 - `WISE_API_TOKEN`: Your Wise API token (required in **stdio** mode; optional in **http** mode for corporate/single-account deployments where all users share the same Wise account)
 - `WISE_IS_SANDBOX`: Set to `true` to use the Wise Sandbox API (default: `false`)
 - `MODE`: MCP Server transport mode — `http` (streamable-http) or `stdio` (default: `stdio`)
-- `WISE_ALLOWED_PROFILES`: **Corporate mode** — comma-separated list of allowed Wise profile IDs. Use `list_profiles` to discover IDs. Example: `13614771,69973314`. Takes precedence over `WISE_ALLOWED_PROFILE_TYPES` when set.
+- `WISE_ALLOWED_PROFILES`: **Corporate mode** — comma-separated list of allowed Wise profile IDs. Use `list_profiles` to discover IDs. Example: `12345678,87654321`. Takes precedence over `WISE_ALLOWED_PROFILE_TYPES` when set.
 - `WISE_ALLOWED_PROFILE_TYPES`: **End-user mode** — comma-separated list of allowed profile types (default: `personal`). Example: `personal,business`. Only used when `WISE_ALLOWED_PROFILES` is not set.
 
 ## Development
