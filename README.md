@@ -114,7 +114,7 @@ docker build -t mcp-wise .
 The server supports two transport modes:
 
 - **stdio** (default) — one process per user, token provided via `WISE_API_TOKEN` environment variable
-- **streamable-http** — single shared server, token provided per-request via the `Authorization: Bearer <token>` header
+- **streamable-http** — single shared server, supports both corporate and end-user deployment modes
 
 Template config files are provided:
 
@@ -126,33 +126,62 @@ cp .mcp.json.stdio .mcp.json
 cp .mcp.json.http .mcp.json
 ```
 
-### Multi-User HTTP Deployment
+### Deployment Modes
 
-In HTTP mode (`MODE=http`), the server does **not** require a `WISE_API_TOKEN` environment variable. Instead, each MCP client sends the user's Wise API token in the HTTP `Authorization` header:
+When running in HTTP mode (`MODE=http`), the server supports two deployment modes depending on how authentication and access control are configured:
 
-```text
-Authorization: Bearer <wise_api_token>
-```
+#### Corporate Mode (Single Account)
 
-This allows a single `mcp-wise` instance to serve multiple users, each with their own Wise account. The token is extracted from the request headers on every tool call.
+A single Wise account is configured for this MCP server instance. The server is configured with a global API token, and access is restricted to specific profile IDs.
 
-Example with Docker:
+| Variable | Value |
+|---|---|
+| `WISE_API_TOKEN` | Global Wise API token for the shared account |
+| `WISE_ALLOWED_PROFILES` | Comma-separated list of allowed profile IDs (e.g., `13614771,69973314`) |
+
+Use `list_profiles` to discover profile IDs, then set `WISE_ALLOWED_PROFILES` to control which profiles are accessible.
 
 ```bash
 docker run -d --name mcp-wise \
   -p 14101:14101 \
   -e MODE=http \
-  -e WISE_IS_SANDBOX=true \
+  -e WISE_API_TOKEN=your_wise_api_token \
+  -e WISE_ALLOWED_PROFILES=13614771,69973314 \
   io2060/mcp-wise:latest
 ```
 
-Clients then connect to `http://localhost:14101/mcp` using the streamable-http MCP transport with their token in the `Authorization` header.
+#### End-User Mode (Multi-Account)
+
+The server does **not** have a global token — instead, each MCP client sends the user's token in the HTTP `Authorization` header:
+
+```text
+Authorization: Bearer <wise_api_token>
+```
+
+In this mode, access is restricted by profile **type** rather than by ID.
+
+| Variable | Value |
+|---|---|
+| `WISE_API_TOKEN` | *Not set* |
+| `WISE_ALLOWED_PROFILE_TYPES` | Comma-separated list of allowed types (default: `personal`) |
+
+```bash
+docker run -d --name mcp-wise \
+  -p 14101:14101 \
+  -e MODE=http \
+  -e WISE_ALLOWED_PROFILE_TYPES=personal,business \
+  io2060/mcp-wise:latest
+```
+
+> **Default behavior**: if neither `WISE_ALLOWED_PROFILES` nor `WISE_ALLOWED_PROFILE_TYPES` is set, only **personal** profiles are allowed.
+
+Clients connect to `http://localhost:14101/mcp` using the streamable-http MCP transport.
 
 ## Available MCP Tools
 
 ### `list_profiles`
 
-List all Wise profiles associated with the current user's API token. Profiles that are not allowed by the server configuration are marked as restricted. This tool does not require a profile parameter.
+List all Wise profiles associated with the current user's API token. Profiles that are not allowed by the server configuration are marked as restricted. Use this tool to discover profile IDs for use with other tools.
 
 ### `get_balances`
 
@@ -160,7 +189,7 @@ Get all multi-currency account balances for a Wise profile.
 
 **Parameters**:
 
-- `profile_type`: One of [personal, business]. Default: "personal"
+- `profile_id`: The Wise profile ID (use `list_profiles` to discover available IDs)
 
 ### `get_exchange_rate`
 
@@ -178,7 +207,7 @@ List transfers (transaction history) for a Wise profile.
 
 **Parameters**:
 
-- `profile_type`: One of [personal, business]. Default: "personal"
+- `profile_id`: The Wise profile ID (use `list_profiles` to discover available IDs)
 - `status`: Optional. Filter by status (e.g., 'processing', 'outgoing_payment_sent', 'cancelled')
 - `limit`: Number of results (default: 10, max: 100)
 - `offset`: Pagination offset (default: 0)
@@ -192,15 +221,14 @@ Get the details and status of a specific transfer.
 **Parameters**:
 
 - `transfer_id`: The ID of the transfer to look up
-- `profile_type`: One of [personal, business]. Default: "personal"
 
 ### `list_recipients`
 
-Returns a list of all recipients from your Wise account.
+Returns a list of all recipients for a Wise profile.
 
 **Parameters**:
 
-- `profile_type`: One of [personal, business]. Default: "personal"
+- `profile_id`: The Wise profile ID (use `list_profiles` to discover available IDs)
 - `currency`: Optional. Filter recipients by currency code (e.g., 'EUR', 'USD')
 
 ### `send_money`
@@ -209,7 +237,7 @@ Sends money to a recipient. Executes the full flow: create quote → create tran
 
 **Parameters**:
 
-- `profile_type`: One of [personal, business]
+- `profile_id`: The Wise profile ID to send money from (use `list_profiles` to discover available IDs)
 - `source_currency`: Source currency code (e.g., 'USD')
 - `source_amount`: Amount in source currency to send
 - `recipient_id`: The ID of the recipient to send money to
@@ -222,7 +250,7 @@ Creates an invoice payment request. **Business profiles only.**
 
 **Parameters**:
 
-- `profile_type`: Must be "business"
+- `profile_id`: The Wise business profile ID (use `list_profiles` to discover available IDs)
 - `balance_id`: The ID of the balance to use for the invoice
 - `due_days`: Number of days from today when the invoice is due
 - `line_items`: List of line items, each containing:
@@ -247,16 +275,17 @@ Gets available currencies and balance IDs for creating invoices. **Business prof
 
 **Parameters**:
 
-- `profile_type`: Should be "business"
+- `profile_id`: The Wise business profile ID (use `list_profiles` to discover available IDs)
 
 ## Configuration
 
 Environment variables (set in `.env` file):
 
-- `WISE_API_TOKEN`: Your Wise API token (required in **stdio** mode; ignored in **http** mode where tokens come from request headers)
+- `WISE_API_TOKEN`: Your Wise API token (required in **stdio** mode; optional in **http** mode for corporate/single-account deployments where all users share the same Wise account)
 - `WISE_IS_SANDBOX`: Set to `true` to use the Wise Sandbox API (default: `false`)
 - `MODE`: MCP Server transport mode — `http` (streamable-http) or `stdio` (default: `stdio`)
-- `WISE_ALLOWED_PROFILES`: Comma-separated list of allowed profile types (default: `personal`). Business profiles must be explicitly enabled. Example: `personal,business`
+- `WISE_ALLOWED_PROFILES`: **Corporate mode** — comma-separated list of allowed Wise profile IDs. Use `list_profiles` to discover IDs. Example: `13614771,69973314`. Takes precedence over `WISE_ALLOWED_PROFILE_TYPES` when set.
+- `WISE_ALLOWED_PROFILE_TYPES`: **End-user mode** — comma-separated list of allowed profile types (default: `personal`). Example: `personal,business`. Only used when `WISE_ALLOWED_PROFILES` is not set.
 
 ## Development
 
