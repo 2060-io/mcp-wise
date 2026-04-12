@@ -6,12 +6,12 @@ from typing import Optional
 
 from fastmcp import Context
 from wise_mcp.app import mcp, get_wise_api_token, check_profile_allowed
-from ..api.wise_client_helper import init_wise_client
+from ..api.wise_client import WiseApiClient
 
 
 @mcp.tool()
 def list_transfers(
-    profile_type: str = "personal",
+    profile_id: int,
     status: Optional[str] = None,
     limit: int = 10,
     offset: int = 0,
@@ -23,7 +23,8 @@ def list_transfers(
     List transfers (transaction history) for a Wise profile.
 
     Args:
-        profile_type: The type of profile to use. One of [personal, business].
+        profile_id: The ID of the Wise profile to list transfers for.
+                    Use list_profiles to discover available profile IDs.
         status: Optional. Filter by transfer status. One of:
                 incoming_payment_waiting, processing, funds_converted,
                 outgoing_payment_sent, cancelled, funds_refunded, bounced_back
@@ -39,16 +40,16 @@ def list_transfers(
     Raises:
         Exception: If the API request fails.
     """
-    denied = check_profile_allowed(profile_type)
+    token = get_wise_api_token(ctx)
+    api_client = WiseApiClient(api_token=token)
+
+    denied = check_profile_allowed(profile_id, api_client=api_client)
     if denied:
         return denied
 
-    token = get_wise_api_token(ctx)
-    wise_ctx = init_wise_client(profile_type, api_token=token)
-
     try:
-        transfers = wise_ctx.wise_api_client.list_transfers(
-            profile_id=wise_ctx.profile.profile_id,
+        transfers = api_client.list_transfers(
+            profile_id=profile_id,
             status=status,
             offset=offset,
             limit=limit,
@@ -86,7 +87,6 @@ def list_transfers(
 @mcp.tool()
 def get_transfer_status(
     transfer_id: str,
-    profile_type: str = "personal",
     ctx: Context = None
 ) -> str:
     """
@@ -94,7 +94,6 @@ def get_transfer_status(
 
     Args:
         transfer_id: The ID of the transfer to look up
-        profile_type: The type of profile to use. One of [personal, business].
 
     Returns:
         Formatted string with transfer details including status, amounts, and dates.
@@ -102,15 +101,11 @@ def get_transfer_status(
     Raises:
         Exception: If the API request fails.
     """
-    denied = check_profile_allowed(profile_type)
-    if denied:
-        return denied
-
     token = get_wise_api_token(ctx)
-    wise_ctx = init_wise_client(profile_type, api_token=token)
+    api_client = WiseApiClient(api_token=token)
 
     try:
-        t = wise_ctx.wise_api_client.get_transfer(transfer_id)
+        t = api_client.get_transfer(transfer_id)
 
         tid = t.get("id", "")
         t_status = t.get("status", "unknown")

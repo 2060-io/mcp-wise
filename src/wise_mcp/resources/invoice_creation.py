@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from fastmcp import Context
 from wise_mcp.api.types.payment_request import PayerAddress
 from wise_mcp.app import mcp, get_wise_api_token, check_profile_allowed
-from wise_mcp.api.wise_client_helper import init_wise_client
+from wise_mcp.api.wise_client import WiseApiClient
 from wise_mcp.api.types import (
     PaymentRequestInvoiceCommand,
     PayerV2,
@@ -20,7 +20,7 @@ from wise_mcp.api.types import (
 
 @mcp.tool()
 def create_invoice(
-    profile_type: str,
+    profile_id: int,
     balance_id: int,
     due_days: int,
     line_items: List[Dict[str, Any]],
@@ -40,7 +40,9 @@ def create_invoice(
     Personal profiles cannot create invoices.
 
     Args:
-        profile_type: The type of profile to use (must be "business" or "BUSINESS" - personal profiles cannot create invoices)
+        profile_id: The ID of the Wise business profile to create the invoice for.
+                    Use list_profiles to discover available profile IDs.
+                    Must be a business profile — personal profiles cannot create invoices.
         balance_id: The ID of the balance to use for the invoice
         due_days: Number of days from today when the invoice is due (use "30" if not specified)
         line_items: List of line items, each containing:
@@ -68,16 +70,12 @@ def create_invoice(
         Exception: If any API request fails during the process
     """
 
-    # Check if profile type is business
-    if profile_type.lower() != "business":
-        return "Error: Invoices are only available for business profiles. Personal profiles cannot create invoices."
+    token = get_wise_api_token(ctx)
+    api_client = WiseApiClient(api_token=token)
 
-    denied = check_profile_allowed(profile_type)
+    denied = check_profile_allowed(profile_id, api_client=api_client)
     if denied:
         return denied
-
-    token = get_wise_api_token(ctx)
-    wise_ctx = init_wise_client(profile_type, api_token=token)
     
     # Calculate due date
     due_date = (datetime.now() + timedelta(days=due_days)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
@@ -88,8 +86,8 @@ def create_invoice(
 
     try:
         # Step 1: Create empty invoice to get auto-generated fields
-        empty_invoice = wise_ctx.wise_api_client.create_empty_invoice(
-            profile_id=wise_ctx.profile.profile_id,
+        empty_invoice = api_client.create_empty_invoice(
+            profile_id=profile_id,
             balance_id=balance_id,
             due_at=due_date,
             issue_date=issue_date
@@ -153,15 +151,15 @@ def create_invoice(
             message=message
         )
         
-        updated_invoice = wise_ctx.wise_api_client.update_payment_request_v2(
-            profile_id=wise_ctx.profile.profile_id,
+        updated_invoice = api_client.update_payment_request_v2(
+            profile_id=profile_id,
             payment_request_id=empty_invoice.id,
             payment_request=payment_request
         )
         
         # Step 3: Publish the invoice
-        published_invoice = wise_ctx.wise_api_client.publish_payment_request(
-            profile_id=wise_ctx.profile.profile_id,
+        published_invoice = api_client.publish_payment_request(
+            profile_id=profile_id,
             payment_request_id=updated_invoice.id
         )
         
@@ -172,7 +170,7 @@ def create_invoice(
 
 
 @mcp.tool()
-def get_balance_currencies(profile_type: str, ctx: Context = None) -> str:
+def get_balance_currencies(profile_id: int, ctx: Context = None) -> str:
     """
     Get available currencies and balance IDs for creating invoices.
     
@@ -180,7 +178,8 @@ def get_balance_currencies(profile_type: str, ctx: Context = None) -> str:
     Personal profiles cannot create invoices.
 
     Args:
-        profile_type: The type of profile to use (should be "business" for invoice creation)
+        profile_id: The ID of the Wise business profile.
+                    Use list_profiles to discover available profile IDs.
 
     Returns:
         String with formatted list of available balances and their IDs
@@ -189,20 +188,16 @@ def get_balance_currencies(profile_type: str, ctx: Context = None) -> str:
         Exception: If the API request fails
     """
     
-    # Warn if using personal profile
-    if profile_type.lower() == "personal":
-        return "Warning: Invoices are only available for business profiles. Personal profiles cannot create invoices. Please use profile_type='business' instead."
-    
-    denied = check_profile_allowed(profile_type)
+    token = get_wise_api_token(ctx)
+    api_client = WiseApiClient(api_token=token)
+
+    denied = check_profile_allowed(profile_id, api_client=api_client)
     if denied:
         return denied
-
-    token = get_wise_api_token(ctx)
-    wise_ctx = init_wise_client(profile_type, api_token=token)
     
     try:
         # Get balance currencies
-        currencies = wise_ctx.wise_api_client.get_balance_currencies(wise_ctx.profile.profile_id)
+        currencies = api_client.get_balance_currencies(profile_id)
         
         if not currencies.get("balances"):
             return "No balances found for this profile."
